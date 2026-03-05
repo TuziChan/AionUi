@@ -9,11 +9,13 @@ import AgentModeSelector from '@/renderer/components/AgentModeSelector';
 import { supportsModeSwitch } from '@/renderer/constants/agentModes';
 import { getCleanFileNames } from '@/renderer/services/FileService';
 import { iconColors } from '@/renderer/theme/colors';
+import { getLastDirectoryName } from '@/renderer/utils/workspace';
+import { cleanupWorkspaces, getRecentWorkspaces } from '@/renderer/utils/workspaceHistory';
 import type { AcpBackend, AcpBackendConfig, AvailableAgent } from '../types';
 import PresetAgentTag from './PresetAgentTag';
 import { Button, Dropdown, Menu, Tooltip } from '@arco-design/web-react';
-import { ArrowUp, FolderOpen, Plus, UploadOne } from '@icon-park/react';
-import React, { useState } from 'react';
+import { ArrowUp, FolderOpen, Plus, Time, UploadOne } from '@icon-park/react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../index.module.css';
 
@@ -47,6 +49,13 @@ type GuidActionRowProps = {
 const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, onSelectWorkspace, modelSelectorNode, selectedAgent, selectedMode, onModeSelect, isPresetAgent, selectedAgentInfo, customAgents, localeKey, onClosePresetTag, loading, isButtonDisabled, onSend }) => {
   const { t } = useTranslation();
   const [isPlusDropdownOpen, setIsPlusDropdownOpen] = useState(false);
+  const [recentWorkspaces, setRecentWorkspaces] = useState<Array<{ path: string; time: number }>>([]);
+
+  useEffect(() => {
+    void cleanupWorkspaces().then(() => {
+      void getRecentWorkspaces().then(setRecentWorkspaces);
+    });
+  }, []);
 
   return (
     <div className={styles.actionRow}>
@@ -80,6 +89,8 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, o
                     .catch((error) => {
                       console.error('Failed to open directory dialog:', error);
                     });
+                } else if (key.startsWith('recent:')) {
+                  onSelectWorkspace(key.slice('recent:'.length));
                 }
               }}
             >
@@ -95,6 +106,32 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, o
                   <span>{t('conversation.welcome.specifyWorkspace')}</span>
                 </div>
               </Menu.Item>
+              <Menu.SubMenu
+                key='recentWorkspaces'
+                title={
+                  <div className='flex items-center gap-8px'>
+                    <Time theme='outline' size='16' fill={iconColors.secondary} style={{ lineHeight: 0 }} />
+                    <span>{t('conversation.welcome.recentWorkspaces')}</span>
+                  </div>
+                }
+              >
+                {recentWorkspaces.length > 0 ? (
+                  recentWorkspaces.map((item) => (
+                    <Menu.Item key={`recent:${item.path}`}>
+                      <Tooltip content={item.path} position='right' mini>
+                        <div className='flex items-center gap-8px max-w-250px'>
+                          <FolderOpen theme='outline' size='14' fill={iconColors.secondary} style={{ lineHeight: 0, flexShrink: 0 }} />
+                          <span className='truncate'>{getLastDirectoryName(item.path)}</span>
+                        </div>
+                      </Tooltip>
+                    </Menu.Item>
+                  ))
+                ) : (
+                  <Menu.Item key='no-recent' disabled>
+                    <span className='text-t-tertiary'>{t('conversation.welcome.noRecentWorkspaces')}</span>
+                  </Menu.Item>
+                )}
+              </Menu.SubMenu>
             </Menu>
           }
         >

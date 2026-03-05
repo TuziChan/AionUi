@@ -826,13 +826,41 @@ const migration_v14: IMigration = {
 };
 
 /**
+ * Migration v14 -> v15: Add workspace_history table
+ * Stores workspace usage timestamps for "Recent Folders" feature
+ */
+const migration_v15: IMigration = {
+  version: 15,
+  name: 'Add workspace_history table',
+  up: (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS workspace_history (
+        path TEXT PRIMARY KEY,
+        last_used_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_workspace_history_last_used ON workspace_history(last_used_at DESC);
+    `);
+    console.log('[Migration v15] Added workspace_history table');
+  },
+  down: (db) => {
+    db.exec(`
+      DROP INDEX IF EXISTS idx_workspace_history_last_used;
+      DROP TABLE IF EXISTS workspace_history;
+    `);
+    console.log('[Migration v15] Rolled back: Removed workspace_history table');
+  },
+};
+
+/**
  * All migrations in order
  */
 // prettier-ignore
 export const ALL_MIGRATIONS: IMigration[] = [
   migration_v1, migration_v2, migration_v3, migration_v4, migration_v5, migration_v6,
   migration_v7, migration_v8, migration_v9, migration_v10, migration_v11, migration_v12,
-  migration_v13, migration_v14,
+  migration_v13, migration_v14, migration_v15,
 ];
 
 /**

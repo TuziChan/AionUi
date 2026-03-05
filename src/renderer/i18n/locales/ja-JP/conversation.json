@@ -12,6 +12,8 @@
     "specifyWorkspace": "フォルダーでチャット",
     "currentWorkspace": "現在のワークスペース",
     "clearWorkspace": "フォルダーを解除",
+    "recentWorkspaces": "最近のフォルダ",
+    "noRecentWorkspaces": "最近のフォルダはありません",
     "openFolder": "Open Folder",
     "none": "None",
     "quickActionsTitle": "AionUi で何ができる？",

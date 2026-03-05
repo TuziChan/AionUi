@@ -12,6 +12,8 @@
     "specifyWorkspace": "Klasörde Sohbet Et",
     "currentWorkspace": "Mevcut Çalışma Alanı",
     "clearWorkspace": "Klasörü kaldır",
+    "recentWorkspaces": "Son Klasörler",
+    "noRecentWorkspaces": "Son klasör yok",
     "openFolder": "Klasör Aç",
     "none": "Hiçbiri",
     "quickActionsTitle": "AionUi neler yapabilir?",

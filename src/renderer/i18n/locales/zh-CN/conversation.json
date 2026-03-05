@@ -12,6 +12,8 @@
     "specifyWorkspace": "关联文件夹对话",
     "currentWorkspace": "当前工作空间",
     "clearWorkspace": "移除已选文件夹",
+    "recentWorkspaces": "最近文件夹",
+    "noRecentWorkspaces": "暂无最近文件夹",
     "openFolder": "打开文件夹",
     "none": "无",
     "quickActionsTitle": "AionUi 能做什么？",

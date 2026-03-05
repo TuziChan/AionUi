@@ -132,7 +132,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
 
         if (isCustomWorkspace) {
           closeAllTabs();
-          updateWorkspaceTime(finalWorkspace);
+          void updateWorkspaceTime(finalWorkspace);
           openTab(conversation);
         }
 
@@ -190,7 +190,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
 
         if (isCustomWorkspace) {
           closeAllTabs();
-          updateWorkspaceTime(finalWorkspace);
+          void updateWorkspaceTime(finalWorkspace);
           openTab(conversation);
         }
 
@@ -236,7 +236,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
 
         if (isCustomWorkspace) {
           closeAllTabs();
-          updateWorkspaceTime(finalWorkspace);
+          void updateWorkspaceTime(finalWorkspace);
           openTab(conversation);
         }
 
@@ -296,7 +296,7 @@ export const useGuidSend = (deps: GuidSendDeps): GuidSendResult => {
 
         if (isCustomWorkspace) {
           closeAllTabs();
-          updateWorkspaceTime(finalWorkspace);
+          void updateWorkspaceTime(finalWorkspace);
           openTab(conversation);
         }
 
