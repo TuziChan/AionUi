@@ -309,7 +309,11 @@ const GuidPage: React.FC = () => {
         {hasWorkspace && !workspacePanelCollapsed && (
           <div className={styles.guidWorkspacePanel}>
             <div className='workspace-panel-header flex items-center justify-start px-12px py-4px gap-12px border-b border-[var(--bg-3)]' style={{ height: 32, minHeight: 32 }}>
-              <div className='flex-1 truncate text-sm font-medium'>{t('conversation.workspace.title')}</div>
+              <div className='flex-1 truncate'>
+                <div className='flex items-center justify-between'>
+                  <span className='text-16px font-bold text-t-primary'>{t('conversation.workspace.title')}</span>
+                </div>
+              </div>
             </div>
             <div className={styles.guidWorkspacePanelContent}>
               {workspaceMessageContext}
