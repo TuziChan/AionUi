@@ -26,8 +26,8 @@ import { useGuidModelSelection } from './hooks/useGuidModelSelection';
 import { useGuidSend } from './hooks/useGuidSend';
 import { useTypewriterPlaceholder } from './hooks/useTypewriterPlaceholder';
 import { ConfigProvider, Message } from '@arco-design/web-react';
-import { ExpandRight } from '@icon-park/react';
-import React, { useCallback, useRef } from 'react';
+import { ExpandLeft, ExpandRight } from '@icon-park/react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './index.module.css';
@@ -45,6 +45,7 @@ const GuidPage: React.FC = () => {
   const layout = useLayoutContext();
   const isMobile = Boolean(layout?.isMobile);
   const [workspaceMessageApi, workspaceMessageContext] = Message.useMessage({ maxCount: 1 });
+  const [workspacePanelCollapsed, setWorkspacePanelCollapsed] = useState(false);
 
   // Open external link
   const openLink = useCallback(async (url: string) => {
@@ -257,7 +258,7 @@ const GuidPage: React.FC = () => {
     />
   );
 
-  const showWorkspacePanel = Boolean(guidInput.dir) && !isMobile;
+  const hasWorkspace = Boolean(guidInput.dir) && !isMobile;
 
   return (
     <ConfigProvider getPopupContainer={() => guidContainerRef.current || document.body}>
@@ -298,11 +299,11 @@ const GuidPage: React.FC = () => {
           <QuickActionButtons onOpenLink={openLink} inactiveBorderColor={inactiveBorderColor} activeShadow={activeShadow} />
         </div>
 
-        {showWorkspacePanel && (
+        {hasWorkspace && !workspacePanelCollapsed && (
           <div className={styles.guidWorkspacePanel}>
             <div className={styles.guidWorkspacePanelHeader}>
               <span className='flex-1 truncate text-sm font-medium'>{t('conversation.workspace.title')}</span>
-              <button type='button' className='workspace-header__toggle' aria-label='Close workspace preview' onClick={() => guidInput.setDir('')}>
+              <button type='button' className='workspace-header__toggle' aria-label='Collapse workspace preview' onClick={() => setWorkspacePanelCollapsed(true)}>
                 <ExpandRight size={16} />
               </button>
             </div>
@@ -311,6 +312,11 @@ const GuidPage: React.FC = () => {
               <ChatWorkspace conversation_id={GUID_WORKSPACE_PREVIEW_ID} workspace={guidInput.dir} messageApi={workspaceMessageApi} />
             </div>
           </div>
+        )}
+        {hasWorkspace && workspacePanelCollapsed && (
+          <button type='button' className='workspace-toggle-floating workspace-header__toggle absolute top-1/2 right-2 z-10' style={{ transform: 'translateY(-50%)' }} onClick={() => setWorkspacePanelCollapsed(false)} aria-label='Expand workspace preview'>
+            <ExpandLeft size={16} />
+          </button>
         )}
       </div>
     </ConfigProvider>
