@@ -703,6 +703,24 @@ export const extensions = {
 
 import type { IChannelPairingRequest, IChannelPluginStatus, IChannelSession, IChannelUser } from '@/channels/types';
 
+// Workspace history API (server-side storage for WebUI compatibility)
+export const workspaceHistory = {
+  /** Get workspace last used timestamp */
+  getTime: bridge.buildProvider<number, { path: string }>('workspace-history.get-time'),
+  /** Update workspace usage timestamp */
+  updateTime: bridge.buildProvider<boolean, { path: string; timestamp?: number }>('workspace-history.update-time'),
+  /** Get recent workspaces sorted by time */
+  getRecent: bridge.buildProvider<Array<{ path: string; time: number }>, { limit?: number }>('workspace-history.get-recent'),
+  /** Remove workspace from history */
+  remove: bridge.buildProvider<boolean, { path: string }>('workspace-history.remove'),
+  /** Get all workspaces (for cleanup) */
+  getAll: bridge.buildProvider<Array<{ path: string; time: number }>, void>('workspace-history.get-all'),
+  /** Batch remove workspaces */
+  removeMany: bridge.buildProvider<number, { paths: string[] }>('workspace-history.remove-many'),
+  /** Trim history to max entries */
+  trim: bridge.buildProvider<number, { maxEntries: number }>('workspace-history.trim'),
+};
+
 export const channel = {
   // Plugin Management
   getPluginStatus: bridge.buildProvider<IBridgeResponse<IChannelPluginStatus[]>, void>('channel.get-plugin-status'),

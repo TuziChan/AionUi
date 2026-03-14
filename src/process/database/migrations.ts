@@ -826,6 +826,34 @@ const migration_v14: IMigration = {
 };
 
 /**
+ * Migration v14 -> v15: Add workspace_history table
+ * Stores workspace usage timestamps for "Recent Folders" feature
+ */
+const migration_v15: IMigration = {
+  version: 15,
+  name: 'Add workspace_history table',
+  up: (db) => {
+    db.exec(`
+      CREATE TABLE IF NOT EXISTS workspace_history (
+        path TEXT PRIMARY KEY,
+        last_used_at INTEGER NOT NULL,
+        created_at INTEGER NOT NULL
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_workspace_history_last_used ON workspace_history(last_used_at DESC);
+    `);
+    console.log('[Migration v15] Added workspace_history table');
+  },
+  down: (db) => {
+    db.exec(`
+      DROP INDEX IF EXISTS idx_workspace_history_last_used;
+      DROP TABLE IF EXISTS workspace_history;
+    `);
+    console.log('[Migration v15] Rolled back: Removed workspace_history table');
+  },
+};
+
+/**
  * All migrations in order
  */
 /**

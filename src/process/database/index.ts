@@ -1135,6 +1135,120 @@ export class AionUIDatabase {
     this.db.exec('VACUUM');
     console.log('[Database] Vacuum completed');
   }
+
+  /**
+   * ==================
+   * Workspace History operations
+   * 工作空间历史操作
+   * ==================
+   */
+
+  /**
+   * Get workspace last used timestamp
+   * 获取工作空间最后使用时间
+   */
+  getWorkspaceTime(path: string): IQueryResult<number> {
+    try {
+      const row = this.db.prepare('SELECT last_used_at FROM workspace_history WHERE path = ?').get(path) as { last_used_at: number } | undefined;
+      return { success: true, data: row?.last_used_at ?? 0 };
+    } catch (error: any) {
+      return { success: false, error: error.message, data: 0 };
+    }
+  }
+
+  /**
+   * Update or insert workspace usage timestamp
+   * 更新或插入工作空间使用时间
+   */
+  updateWorkspaceTime(path: string, timestamp?: number): IQueryResult<boolean> {
+    try {
+      const now = timestamp ?? Date.now();
+      const stmt = this.db.prepare(`
+        INSERT INTO workspace_history (path, last_used_at, created_at)
+        VALUES (?, ?, ?)
+        ON CONFLICT(path) DO UPDATE SET last_used_at = excluded.last_used_at
+      `);
+      stmt.run(path, now, now);
+      return { success: true, data: true };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get recent workspaces sorted by last used time
+   * 获取最近使用的工作空间，按使用时间排序
+   */
+  getRecentWorkspaces(limit: number = 10): IQueryResult<Array<{ path: string; time: number }>> {
+    try {
+      const rows = this.db.prepare('SELECT path, last_used_at FROM workspace_history ORDER BY last_used_at DESC LIMIT ?').all(limit) as Array<{ path: string; last_used_at: number }>;
+      return { success: true, data: rows.map((r) => ({ path: r.path, time: r.last_used_at })) };
+    } catch (error: any) {
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  /**
+   * Remove workspace from history
+   * 从历史记录中移除工作空间
+   */
+  removeWorkspace(path: string): IQueryResult<boolean> {
+    try {
+      const result = this.db.prepare('DELETE FROM workspace_history WHERE path = ?').run(path);
+      return { success: true, data: result.changes > 0 };
+    } catch (error: any) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get all workspaces (for cleanup validation)
+   * 获取所有工作空间（用于清理验证）
+   */
+  getAllWorkspaces(): IQueryResult<Array<{ path: string; time: number }>> {
+    try {
+      const rows = this.db.prepare('SELECT path, last_used_at FROM workspace_history').all() as Array<{ path: string; last_used_at: number }>;
+      return { success: true, data: rows.map((r) => ({ path: r.path, time: r.last_used_at })) };
+    } catch (error: any) {
+      return { success: false, error: error.message, data: [] };
+    }
+  }
+
+  /**
+   * Batch remove workspaces
+   * 批量删除工作空间
+   */
+  removeWorkspaces(paths: string[]): IQueryResult<number> {
+    try {
+      if (paths.length === 0) return { success: true, data: 0 };
+      const placeholders = paths.map(() => '?').join(',');
+      const stmt = this.db.prepare(`DELETE FROM workspace_history WHERE path IN (${placeholders})`);
+      const result = stmt.run(...paths);
+      return { success: true, data: result.changes };
+    } catch (error: any) {
+      return { success: false, error: error.message, data: 0 };
+    }
+  }
+
+  /**
+   * Trim workspace history to max entries, keeping most recent
+   * 修剪工作空间历史记录到最大条目数，保留最近的
+   */
+  trimWorkspaceHistory(maxEntries: number): IQueryResult<number> {
+    try {
+      // Delete entries beyond maxEntries, keeping most recent
+      const stmt = this.db.prepare(`
+        DELETE FROM workspace_history
+        WHERE path NOT IN (
+          SELECT path FROM workspace_history ORDER BY last_used_at DESC LIMIT ?
+        )
+      `);
+      const result = stmt.run(maxEntries);
+      return { success: true, data: result.changes };
+    } catch (error: any) {
+      return { success: false, error: error.message, data: 0 };
+    }
+  }
 }
 
 // Export singleton instance

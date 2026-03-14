@@ -7,6 +7,7 @@
 import { ipcBridge } from '@/common';
 import type { TChatConversation } from '@/common/storage';
 import { addEventListener } from '@/renderer/utils/emitter';
+import { getRecentWorkspaces } from '@/renderer/utils/workspaceHistory';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useParams } from 'react-router-dom';
@@ -18,6 +19,7 @@ const EXPANSION_STORAGE_KEY = 'aionui_workspace_expansion';
 
 export const useConversations = () => {
   const [conversations, setConversations] = useState<TChatConversation[]>([]);
+  const [workspaceTimes, setWorkspaceTimes] = useState<Map<string, number>>(new Map());
   const [expandedWorkspaces, setExpandedWorkspaces] = useState<string[]>(() => {
     try {
       const stored = localStorage.getItem(EXPANSION_STORAGE_KEY);
@@ -54,6 +56,19 @@ export const useConversations = () => {
           console.error('[WorkspaceGroupedHistory] Failed to load conversations:', error);
           setConversations([]);
         });
+
+      // Fetch workspace times for sorting
+      getRecentWorkspaces(100)
+        .then((workspaces) => {
+          const timesMap = new Map<string, number>();
+          workspaces.forEach(({ path, time }) => {
+            timesMap.set(path, time);
+          });
+          setWorkspaceTimes(timesMap);
+        })
+        .catch((error) => {
+          console.error('[WorkspaceGroupedHistory] Failed to load workspace times:', error);
+        });
     };
 
     refresh();
@@ -82,8 +97,8 @@ export const useConversations = () => {
   }, [expandedWorkspaces]);
 
   const groupedHistory: GroupedHistoryResult = useMemo(() => {
-    return buildGroupedHistory(conversations, t);
-  }, [conversations, t]);
+    return buildGroupedHistory(conversations, t, workspaceTimes);
+  }, [conversations, t, workspaceTimes]);
 
   const { pinnedConversations, timelineSections } = groupedHistory;
 

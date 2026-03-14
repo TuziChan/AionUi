@@ -10,11 +10,13 @@ import { getAgentModes, supportsModeSwitch, type AgentModeOption } from '@/rende
 import { useLayoutContext } from '@/renderer/context/LayoutContext';
 import { getCleanFileNames } from '@/renderer/services/FileService';
 import { iconColors } from '@/renderer/theme/colors';
+import { getLastDirectoryName } from '@/renderer/utils/workspace';
+import { cleanupWorkspaces, getRecentWorkspaces } from '@/renderer/utils/workspaceHistory';
 import type { AcpBackend, AcpBackendConfig, AvailableAgent } from '../types';
 import PresetAgentTag from './PresetAgentTag';
-import { Button, Tooltip } from '@arco-design/web-react';
-import { ArrowUp, FolderOpen, Shield, UploadOne } from '@icon-park/react';
-import React from 'react';
+import { Button, Dropdown, Menu, Tooltip } from '@arco-design/web-react';
+import { ArrowUp, FolderOpen, Plus, Shield, Time, UploadOne } from '@icon-park/react';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../index.module.css';
 
@@ -61,49 +63,111 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, o
 
   const permissionLabel = currentModeOption ? (isMobile ? getModeDisplayLabel(currentModeOption) : `${t('agentMode.permission')} · ${getModeDisplayLabel(currentModeOption)}`) : t('agentMode.permission');
 
-  const handleUploadFile = () => {
-    ipcBridge.dialog.showOpen
-      .invoke({ properties: ['openFile', 'multiSelections'] })
-      .then((uploadedFiles) => {
-        if (uploadedFiles && uploadedFiles.length > 0) {
-          onFilesUploaded(uploadedFiles);
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to open file dialog:', error);
-      });
-  };
+  const [isPlusDropdownOpen, setIsPlusDropdownOpen] = useState(false);
+  const [recentWorkspaces, setRecentWorkspaces] = useState<Array<{ path: string; time: number }>>([]);
 
-  const handleSelectWorkspace = () => {
-    ipcBridge.dialog.showOpen
-      .invoke({ properties: ['openDirectory'] })
-      .then((dirs) => {
-        if (dirs && dirs[0]) {
-          onSelectWorkspace(dirs[0]);
-        }
-      })
-      .catch((error) => {
-        console.error('Failed to open directory dialog:', error);
-      });
-  };
+  useEffect(() => {
+    void cleanupWorkspaces().then(() => {
+      void getRecentWorkspaces().then(setRecentWorkspaces);
+    });
+  }, []);
 
   return (
     <div className={styles.actionRow}>
       <div className={styles.actionTools}>
-        <Tooltip content={t('conversation.welcome.uploadFile')} position='top' mini>
+        <Dropdown
+          trigger='hover'
+          onVisibleChange={setIsPlusDropdownOpen}
+          droplist={
+            <Menu
+              className='min-w-200px'
+              onClickMenuItem={(key) => {
+                if (key === 'file') {
+                  ipcBridge.dialog.showOpen
+                    .invoke({ properties: ['openFile', 'multiSelections'] })
+                    .then((uploadedFiles) => {
+                      if (uploadedFiles && uploadedFiles.length > 0) {
+                        onFilesUploaded(uploadedFiles);
+                      }
+                    })
+                    .catch((error) => {
+                      console.error('Failed to open file dialog:', error);
+                    });
+                } else if (key === 'workspace') {
+                  ipcBridge.dialog.showOpen
+                    .invoke({ properties: ['openDirectory'] })
+                    .then((dirs) => {
+                      if (dirs && dirs[0]) {
+                        onSelectWorkspace(dirs[0]);
+                      }
+                    })
+                    .catch((error) => {
+                      console.error('Failed to open directory dialog:', error);
+                    });
+                } else if (key.startsWith('recent:')) {
+                  onSelectWorkspace(key.slice('recent:'.length));
+                }
+              }}
+            >
+              <Menu.Item key='file'>
+                <div className='flex items-center gap-8px'>
+                  <UploadOne theme='outline' size='16' fill={iconColors.secondary} style={{ lineHeight: 0 }} />
+                  <span>{t('conversation.welcome.uploadFile')}</span>
+                </div>
+              </Menu.Item>
+              <Menu.Item key='workspace'>
+                <div className='flex items-center gap-8px'>
+                  <FolderOpen theme='outline' size='16' fill={iconColors.secondary} style={{ lineHeight: 0 }} />
+                  <span>{t('conversation.welcome.specifyWorkspace')}</span>
+                </div>
+              </Menu.Item>
+              <Menu.SubMenu
+                key='recentWorkspaces'
+                title={
+                  <div className='flex items-center gap-8px'>
+                    <Time theme='outline' size='16' fill={iconColors.secondary} style={{ lineHeight: 0 }} />
+                    <span>{t('conversation.welcome.recentWorkspaces')}</span>
+                  </div>
+                }
+              >
+                {recentWorkspaces.length > 0 ? (
+                  recentWorkspaces.map((item) => (
+                    <Menu.Item key={`recent:${item.path}`}>
+                      <Tooltip content={item.path} position='right' mini>
+                        <div className='flex items-center gap-8px max-w-250px'>
+                          <FolderOpen theme='outline' size='14' fill={iconColors.secondary} style={{ lineHeight: 0, flexShrink: 0 }} />
+                          <span className='truncate'>{getLastDirectoryName(item.path)}</span>
+                        </div>
+                      </Tooltip>
+                    </Menu.Item>
+                  ))
+                ) : (
+                  <Menu.Item key='no-recent' disabled>
+                    <span className='text-t-tertiary'>{t('conversation.welcome.noRecentWorkspaces')}</span>
+                  </Menu.Item>
+                )}
+              </Menu.SubMenu>
+            </Menu>
+          }
+        >
           <span className='flex items-center gap-4px cursor-pointer lh-[1]'>
-            <Button type='text' shape='circle' icon={<UploadOne theme='outline' size='14' strokeWidth={2} fill={iconColors.primary} />} onClick={handleUploadFile} />
+            <Button type='text' shape='circle' icon={<Plus theme='outline' size='14' strokeWidth={2} fill={iconColors.primary} />} />
             {files.length > 0 && (
               <Tooltip className={'!max-w-max'} content={<span className='whitespace-break-spaces'>{getCleanFileNames(files).join('\n')}</span>}>
                 <span className='text-t-primary'>File({files.length})</span>
               </Tooltip>
             )}
           </span>
-        </Tooltip>
+        </Dropdown>
 
-        <Tooltip content={t('conversation.welcome.specifyWorkspace')} position='top' mini>
-          <Button type='text' shape='circle' className={dir ? styles.workspaceButtonActive : ''} icon={<FolderOpen theme={dir ? 'filled' : 'outline'} size='14' strokeWidth={2} fill={dir ? 'rgb(var(--primary-6))' : iconColors.primary} />} onClick={handleSelectWorkspace} />
-        </Tooltip>
+        {dir && (
+          <Tooltip content={dir} position='top' mini>
+            <span className='flex items-center gap-4px cursor-pointer text-t-secondary'>
+              <FolderOpen theme='filled' size='14' fill='rgb(var(--primary-6))' />
+              <span className='text-xs truncate max-w-120px'>{getLastDirectoryName(dir)}</span>
+            </span>
+          </Tooltip>
+        )}
 
         {modelSelectorNode}
 
