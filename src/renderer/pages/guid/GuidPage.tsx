@@ -8,6 +8,7 @@ import { resolveLocaleKey } from '@/common/utils';
 import { useInputFocusRing } from '@/renderer/hooks/useInputFocusRing';
 import { useLayoutContext } from '@/renderer/context/LayoutContext';
 import { openExternalUrl } from '@/renderer/utils/platform';
+import { emitter } from '@/renderer/utils/emitter';
 import { useConversationTabs } from '@/renderer/pages/conversation/context/ConversationTabsContext';
 import ChatWorkspace from '@/renderer/pages/conversation/workspace';
 import AgentPillBar from './components/AgentPillBar';
@@ -27,7 +28,7 @@ import { useGuidSend } from './hooks/useGuidSend';
 import { useTypewriterPlaceholder } from './hooks/useTypewriterPlaceholder';
 import { ConfigProvider, Message } from '@arco-design/web-react';
 import { ExpandLeft, ExpandRight } from '@icon-park/react';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './index.module.css';
@@ -68,6 +69,22 @@ const GuidPage: React.FC = () => {
   const guidInput = useGuidInput({
     locationState: location.state as { workspace?: string } | null,
   });
+
+  // Bridge workspace "add to chat" events to GuidPage file state
+  useEffect(() => {
+    const handler = (items: Array<string | { path: string }>) => {
+      const paths = items.map((item) => (typeof item === 'string' ? item : item.path));
+      guidInput.setFiles((prev) => {
+        const existing = new Set(prev);
+        const newPaths = paths.filter((p) => !existing.has(p));
+        return newPaths.length > 0 ? [...prev, ...newPaths] : prev;
+      });
+    };
+    emitter.on('gemini.selected.file.append', handler);
+    return () => {
+      emitter.off('gemini.selected.file.append', handler);
+    };
+  }, [guidInput.setFiles]);
 
   const mention = useGuidMention({
     availableAgents: agentSelection.availableAgents,
