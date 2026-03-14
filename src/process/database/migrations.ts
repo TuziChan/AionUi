@@ -854,14 +854,11 @@ const migration_v15: IMigration = {
 };
 
 /**
- * All migrations in order
- */
-/**
- * Migration v14 -> v15: Remove strict CHECK constraints on type/source
+ * Migration v15 -> v16: Remove strict CHECK constraints on type/source
  * to allow extension-contributed channel plugins.
  */
-const migration_v15: IMigration = {
-  version: 15,
+const migration_v16: IMigration = {
+  version: 16,
   name: 'Remove strict constraints for extension channels',
   up: (db) => {
     // 1. Recreate assistant_plugins without strict type constraint
@@ -918,12 +915,12 @@ const migration_v15: IMigration = {
       CREATE INDEX IF NOT EXISTS idx_conversations_source_chat ON conversations(source, channel_chat_id, updated_at DESC);
     `);
 
-    console.log('[Migration v15] Removed strict constraints for extension channels');
+    console.log('[Migration v16] Removed strict constraints for extension channels');
   },
   down: (db) => {
     // Cannot safely rollback if there are custom types/sources in the database.
     // For now, we just log a warning and do nothing, or we could delete them.
-    console.warn('[Migration v15] Rollback skipped to prevent data loss of extension channels.');
+    console.warn('[Migration v16] Rollback skipped to prevent data loss of extension channels.');
   },
 };
 
@@ -934,7 +931,7 @@ const migration_v15: IMigration = {
 export const ALL_MIGRATIONS: IMigration[] = [
   migration_v1, migration_v2, migration_v3, migration_v4, migration_v5, migration_v6,
   migration_v7, migration_v8, migration_v9, migration_v10, migration_v11, migration_v12,
-  migration_v13, migration_v14, migration_v15,
+  migration_v13, migration_v14, migration_v15, migration_v16,
 ];
 
 /**
