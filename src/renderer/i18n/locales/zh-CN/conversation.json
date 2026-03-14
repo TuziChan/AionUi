@@ -139,7 +139,9 @@
       "addToChat": "添加到聊天",
       "addedToChat": "已添加到聊天",
       "openFailed": "打开失败",
-      "revealFailed": "无法打开所在目录"
+      "revealFailed": "无法打开所在目录",
+      "copyPath": "复制文件路径",
+      "copiedPath": "已复制路径"
     }
   },
   "chat": {

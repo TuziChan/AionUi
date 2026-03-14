@@ -67,10 +67,16 @@ export const useGuidInput = ({ locationState }: UseGuidInputOptions): GuidInputR
     setFiles((prevFiles) => prevFiles.filter((file) => file !== targetPath));
   }, []);
 
+  // Handle workspace tree file drop (dedup by path)
+  const handleWorkspaceFileDrop = useCallback((path: string) => {
+    setFiles((prev) => (prev.includes(path) ? prev : [...prev, path]));
+  }, []);
+
   // Use drag upload hook (drag treated like paste, appends to existing files)
   const { isFileDragging, dragHandlers } = useDragUpload({
     supportedExts: allSupportedExts,
     onFilesAdded: handleFilesPasted,
+    onWorkspaceFileDrop: handleWorkspaceFileDrop,
   });
 
   // Use shared PasteService integration (paste appends to existing files)

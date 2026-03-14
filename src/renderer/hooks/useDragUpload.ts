@@ -13,9 +13,10 @@ import { isSupportedFile, FileService } from '../services/FileService';
 export interface UseDragUploadOptions {
   supportedExts?: string[];
   onFilesAdded?: (files: FileMetadata[]) => void;
+  onWorkspaceFileDrop?: (path: string) => void;
 }
 
-export const useDragUpload = ({ supportedExts = [], onFilesAdded }: UseDragUploadOptions) => {
+export const useDragUpload = ({ supportedExts = [], onFilesAdded, onWorkspaceFileDrop }: UseDragUploadOptions) => {
   const { t } = useTranslation();
   const [isFileDragging, setIsFileDragging] = useState(false);
 
@@ -60,9 +61,16 @@ export const useDragUpload = ({ supportedExts = [], onFilesAdded }: UseDragUploa
       e.preventDefault();
       e.stopPropagation();
 
-      // 重置状态
+      // Reset state
       dragCounter.current = 0;
       setIsFileDragging(false);
+
+      // Handle workspace tree file drop
+      const wsFile = e.dataTransfer.getData('application/x-workspace-file');
+      if (wsFile && onWorkspaceFileDrop) {
+        onWorkspaceFileDrop(wsFile);
+        return;
+      }
 
       if (!onFilesAdded) return;
 
@@ -98,7 +106,7 @@ export const useDragUpload = ({ supportedExts = [], onFilesAdded }: UseDragUploa
         Message.error(t('conversation.workspace.dragFailed', 'Failed to process dropped files'));
       }
     },
-    [onFilesAdded, supportedExts, t]
+    [onFilesAdded, onWorkspaceFileDrop, supportedExts, t]
   );
 
   const dragHandlers = {

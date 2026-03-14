@@ -96,8 +96,20 @@ export const useSendBoxFiles = ({ atPath, uploadFile, setAtPath, setUploadFile }
     setUploadFile([]);
   }, [setAtPath, setUploadFile]);
 
+  // Handle workspace tree file drop (single file path)
+  const handleWorkspaceFileDrop = useCallback(
+    (path: string) => {
+      setUploadFile((prevUploadFile) => {
+        if (prevUploadFile.includes(path)) return prevUploadFile;
+        return [...prevUploadFile, path];
+      });
+    },
+    [setUploadFile]
+  );
+
   return {
     handleFilesAdded,
+    handleWorkspaceFileDrop,
     processMessageWithFiles,
     clearFiles,
   };

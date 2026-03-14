@@ -253,6 +253,13 @@ const CodexSendBox: React.FC<{ conversation_id: string }> = ({ conversation_id }
     [setUploadFile]
   );
 
+  const handleWorkspaceFileDrop = useCallback(
+    (path: string) => {
+      setUploadFile((prev) => (prev.includes(path) ? prev : [...prev, path]));
+    },
+    [setUploadFile]
+  );
+
   // 监听从工作空间选择的文件/文件夹（接收对象或路径数组）
   // Listen to files/folders selected from workspace (receives objects or path array)
   useAddEventListener('codex.selected.file', (items: Array<string | FileOrFolderItem>) => {
@@ -431,6 +438,7 @@ const CodexSendBox: React.FC<{ conversation_id: string }> = ({ conversation_id }
         }
         onStop={handleStop}
         onFilesAdded={handleFilesAdded}
+        onWorkspaceFileDrop={handleWorkspaceFileDrop}
         supportedExts={allSupportedExts}
         defaultMultiLine={true}
         lockMultiLine={true}

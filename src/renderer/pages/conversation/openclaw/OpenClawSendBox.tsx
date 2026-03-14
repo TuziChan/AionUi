@@ -373,6 +373,13 @@ const OpenClawSendBox: React.FC<{ conversation_id: string }> = ({ conversation_i
     [setUploadFile]
   );
 
+  const handleWorkspaceFileDrop = useCallback(
+    (path: string) => {
+      setUploadFile((prev) => (prev.includes(path) ? prev : [...prev, path]));
+    },
+    [setUploadFile]
+  );
+
   useAddEventListener('openclaw-gateway.selected.file', (items: Array<string | FileOrFolderItem>) => {
     setTimeout(() => {
       setAtPath(items);
@@ -554,6 +561,7 @@ const OpenClawSendBox: React.FC<{ conversation_id: string }> = ({ conversation_i
         }
         onStop={handleStop}
         onFilesAdded={handleFilesAdded}
+        onWorkspaceFileDrop={handleWorkspaceFileDrop}
         supportedExts={allSupportedExts}
         defaultMultiLine={true}
         lockMultiLine={true}

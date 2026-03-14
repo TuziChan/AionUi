@@ -394,7 +394,7 @@ const AcpSendBox: React.FC<{
   const addOrUpdateMessageRef = useLatestRef(addOrUpdateMessage);
 
   // 使用共享的文件处理逻辑
-  const { handleFilesAdded, clearFiles } = useSendBoxFiles({
+  const { handleFilesAdded, handleWorkspaceFileDrop, clearFiles } = useSendBoxFiles({
     atPath,
     uploadFile,
     setAtPath,
@@ -599,6 +599,7 @@ const AcpSendBox: React.FC<{
         onStop={handleStop}
         className='z-10'
         onFilesAdded={handleFilesAdded}
+        onWorkspaceFileDrop={handleWorkspaceFileDrop}
         supportedExts={allSupportedExts}
         defaultMultiLine={true}
         lockMultiLine={true}

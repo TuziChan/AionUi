@@ -139,7 +139,9 @@
       "addToChat": "채팅에 추가",
       "addedToChat": "채팅에 추가됨",
       "openFailed": "열기 실패",
-      "revealFailed": "포함 폴더 열기 실패"
+      "revealFailed": "포함 폴더 열기 실패",
+      "copyPath": "파일 경로 복사",
+      "copiedPath": "경로 복사됨"
     }
   },
   "chat": {

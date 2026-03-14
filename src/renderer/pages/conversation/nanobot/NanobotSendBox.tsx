@@ -192,6 +192,13 @@ const NanobotSendBox: React.FC<{ conversation_id: string }> = ({ conversation_id
     [setUploadFile]
   );
 
+  const handleWorkspaceFileDrop = useCallback(
+    (path: string) => {
+      setUploadFile((prev) => (prev.includes(path) ? prev : [...prev, path]));
+    },
+    [setUploadFile]
+  );
+
   useAddEventListener('nanobot.selected.file', (items: Array<string | FileOrFolderItem>) => {
     setTimeout(() => {
       setAtPath(items);
@@ -332,6 +339,7 @@ const NanobotSendBox: React.FC<{ conversation_id: string }> = ({ conversation_id
         }
         onStop={handleStop}
         onFilesAdded={handleFilesAdded}
+        onWorkspaceFileDrop={handleWorkspaceFileDrop}
         supportedExts={allSupportedExts}
         tools={<Button type='secondary' shape='circle' icon={<Plus theme='outline' size='14' strokeWidth={2} fill={iconColors.primary} />} onClick={openFileSelector} />}
         prefix={

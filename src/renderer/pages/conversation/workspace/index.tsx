@@ -807,6 +807,18 @@ const ChatWorkspace: React.FC<WorkspaceProps> = ({ conversation_id, workspace, e
                       {t('conversation.workspace.contextMenu.preview')}
                     </button>
                   )}
+                  <button
+                    type='button'
+                    className={menuButtonBase}
+                    onClick={() => {
+                      void navigator.clipboard.writeText(contextMenuNode.fullPath).then(() => {
+                        messageApi.success(t('conversation.workspace.contextMenu.copiedPath'));
+                      });
+                      modalsHook.closeContextMenu();
+                    }}
+                  >
+                    {t('conversation.workspace.contextMenu.copyPath')}
+                  </button>
                   <div className='h-1px bg-3 my-2px'></div>
                   <button
                     type='button'
@@ -869,6 +881,15 @@ const ChatWorkspace: React.FC<WorkspaceProps> = ({ conversation_id, workspace, e
                     <div
                       className='flex items-center justify-between gap-6px min-w-0'
                       style={{ color: 'inherit' }}
+                      draggable={isFile}
+                      onDragStart={(event) => {
+                        if (!isFile) {
+                          event.preventDefault();
+                          return;
+                        }
+                        event.dataTransfer.setData('application/x-workspace-file', nodeData.fullPath);
+                        event.dataTransfer.effectAllowed = 'copy';
+                      }}
                       onDoubleClick={() => {
                         if (isFile) {
                           fileOpsHook.handleAddToChat(nodeData);

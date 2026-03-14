@@ -132,7 +132,9 @@
       "addToChat": "Sohbete ekle",
       "addedToChat": "Sohbete eklendi",
       "openFailed": "Açılamadı",
-      "revealFailed": "İçeren klasör açılamadı"
+      "revealFailed": "İçeren klasör açılamadı",
+      "copyPath": "Dosya yolunu kopyala",
+      "copiedPath": "Yol kopyalandı"
     },
     "expand": "Çalışma Alanını Genişlet",
     "collapse": "Çalışma Alanını Daralt"
