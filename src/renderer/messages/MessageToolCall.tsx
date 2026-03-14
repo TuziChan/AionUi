@@ -5,9 +5,7 @@
  */
 
 import type { IMessageToolCall } from '@/common/chatLib';
-import FileChangesPanel from '@/renderer/components/base/FileChangesPanel';
-import { useDiffPreviewHandlers } from '@/renderer/hooks/useDiffPreviewHandlers';
-import { parseDiff } from '@/renderer/utils/diffUtils';
+import Diff2Html from '@/renderer/components/Diff2Html';
 import { Alert } from '@arco-design/web-react';
 import { MessageSearch } from '@icon-park/react';
 import { createTwoFilesPatch } from 'diff';
@@ -22,11 +20,9 @@ const ReplacePreview: React.FC<{ message: IMessageToolCall }> = ({ message }) =>
     return createTwoFilesPatch(filePath, filePath, message.content.args.old_string ?? '', message.content.args.new_string ?? '', '', '', { context: 3 });
   }, [filePath, message.content.args.old_string, message.content.args.new_string]);
 
-  const fileInfo = useMemo(() => parseDiff(diffText, filePath), [diffText, filePath]);
   const displayName = filePath.split(/[/\\]/).pop() || filePath;
-  const { handleFileClick, handleDiffClick } = useDiffPreviewHandlers({ diffText, displayName, filePath });
 
-  return <FileChangesPanel title={fileInfo.fileName} files={[fileInfo]} onFileClick={handleFileClick} onDiffClick={handleDiffClick} defaultExpanded={true} />;
+  return <Diff2Html diff={diffText} title={displayName} filePath={filePath} />;
 };
 
 const MessageToolCall: React.FC<{ message: IMessageToolCall }> = ({ message }) => {
