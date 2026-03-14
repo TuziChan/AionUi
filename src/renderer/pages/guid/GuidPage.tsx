@@ -6,8 +6,10 @@
 
 import { resolveLocaleKey } from '@/common/utils';
 import { useInputFocusRing } from '@/renderer/hooks/useInputFocusRing';
+import { useLayoutContext } from '@/renderer/context/LayoutContext';
 import { openExternalUrl } from '@/renderer/utils/platform';
 import { useConversationTabs } from '@/renderer/pages/conversation/context/ConversationTabsContext';
+import ChatWorkspace from '@/renderer/pages/conversation/workspace';
 import AgentPillBar from './components/AgentPillBar';
 import AssistantSelectionArea from './components/AssistantSelectionArea';
 import { AgentPillBarSkeleton, AssistantsSkeleton } from './components/GuidSkeleton';
@@ -23,11 +25,14 @@ import { useGuidMention } from './hooks/useGuidMention';
 import { useGuidModelSelection } from './hooks/useGuidModelSelection';
 import { useGuidSend } from './hooks/useGuidSend';
 import { useTypewriterPlaceholder } from './hooks/useTypewriterPlaceholder';
-import { ConfigProvider } from '@arco-design/web-react';
+import { ConfigProvider, Message } from '@arco-design/web-react';
+import { ExpandRight } from '@icon-park/react';
 import React, { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from './index.module.css';
+
+const GUID_WORKSPACE_PREVIEW_ID = '__guid_workspace_preview__';
 
 const GuidPage: React.FC = () => {
   const { t, i18n } = useTranslation();
@@ -37,6 +42,9 @@ const GuidPage: React.FC = () => {
   const { closeAllTabs, openTab } = useConversationTabs();
   const { activeBorderColor, inactiveBorderColor, activeShadow } = useInputFocusRing();
   const localeKey = resolveLocaleKey(i18n.language);
+  const layout = useLayoutContext();
+  const isMobile = Boolean(layout?.isMobile);
+  const [workspaceMessageApi, workspaceMessageContext] = Message.useMessage({ maxCount: 1 });
 
   // Open external link
   const openLink = useCallback(async (url: string) => {
@@ -249,42 +257,61 @@ const GuidPage: React.FC = () => {
     />
   );
 
+  const showWorkspacePanel = Boolean(guidInput.dir) && !isMobile;
+
   return (
     <ConfigProvider getPopupContainer={() => guidContainerRef.current || document.body}>
-      <div ref={guidContainerRef} className={styles.guidContainer}>
-        <div className={styles.guidLayout}>
-          <p className='text-2xl font-semibold mb-6 text-0 text-center'>{t('conversation.welcome.title')}</p>
+      <div className={styles.guidWrapper}>
+        <div ref={guidContainerRef} className={styles.guidContainer}>
+          <div className={styles.guidLayout}>
+            <p className='text-2xl font-semibold mb-6 text-0 text-center'>{t('conversation.welcome.title')}</p>
 
-          {agentSelection.availableAgents === undefined ? <AgentPillBarSkeleton /> : agentSelection.availableAgents.length > 0 ? <AgentPillBar availableAgents={agentSelection.availableAgents} selectedAgentKey={agentSelection.selectedAgentKey} getAgentKey={agentSelection.getAgentKey} onSelectAgent={handleSelectAgentFromPillBar} /> : null}
+            {agentSelection.availableAgents === undefined ? <AgentPillBarSkeleton /> : agentSelection.availableAgents.length > 0 ? <AgentPillBar availableAgents={agentSelection.availableAgents} selectedAgentKey={agentSelection.selectedAgentKey} getAgentKey={agentSelection.getAgentKey} onSelectAgent={handleSelectAgentFromPillBar} /> : null}
 
-          <GuidInputCard
-            input={guidInput.input}
-            onInputChange={handleInputChange}
-            onKeyDown={handleInputKeyDown}
-            onPaste={guidInput.onPaste}
-            onFocus={guidInput.handleTextareaFocus}
-            onBlur={guidInput.handleTextareaBlur}
-            placeholder={`${mention.selectedAgentLabel}, ${typewriterPlaceholder || t('conversation.welcome.placeholder')}`}
-            isInputActive={guidInput.isInputFocused}
-            isFileDragging={guidInput.isFileDragging}
-            activeBorderColor={activeBorderColor}
-            inactiveBorderColor={inactiveBorderColor}
-            activeShadow={activeShadow}
-            dragHandlers={guidInput.dragHandlers}
-            mentionOpen={mention.mentionOpen}
-            mentionSelectorBadge={<MentionSelectorBadge visible={mention.mentionSelectorVisible} open={mention.mentionSelectorOpen} onOpenChange={mention.setMentionSelectorOpen} agentLabel={mention.selectedAgentLabel} mentionMenu={mentionDropdownNode} onResetQuery={() => mention.setMentionQuery(null)} />}
-            mentionDropdown={mentionDropdownNode}
-            files={guidInput.files}
-            onRemoveFile={guidInput.handleRemoveFile}
-            dir={guidInput.dir}
-            onClearDir={() => guidInput.setDir('')}
-            actionRow={actionRowNode}
-          />
+            <GuidInputCard
+              input={guidInput.input}
+              onInputChange={handleInputChange}
+              onKeyDown={handleInputKeyDown}
+              onPaste={guidInput.onPaste}
+              onFocus={guidInput.handleTextareaFocus}
+              onBlur={guidInput.handleTextareaBlur}
+              placeholder={`${mention.selectedAgentLabel}, ${typewriterPlaceholder || t('conversation.welcome.placeholder')}`}
+              isInputActive={guidInput.isInputFocused}
+              isFileDragging={guidInput.isFileDragging}
+              activeBorderColor={activeBorderColor}
+              inactiveBorderColor={inactiveBorderColor}
+              activeShadow={activeShadow}
+              dragHandlers={guidInput.dragHandlers}
+              mentionOpen={mention.mentionOpen}
+              mentionSelectorBadge={<MentionSelectorBadge visible={mention.mentionSelectorVisible} open={mention.mentionSelectorOpen} onOpenChange={mention.setMentionSelectorOpen} agentLabel={mention.selectedAgentLabel} mentionMenu={mentionDropdownNode} onResetQuery={() => mention.setMentionQuery(null)} />}
+              mentionDropdown={mentionDropdownNode}
+              files={guidInput.files}
+              onRemoveFile={guidInput.handleRemoveFile}
+              dir={guidInput.dir}
+              onClearDir={() => guidInput.setDir('')}
+              actionRow={actionRowNode}
+            />
 
-          {agentSelection.availableAgents === undefined ? <AssistantsSkeleton /> : <AssistantSelectionArea isPresetAgent={agentSelection.isPresetAgent} selectedAgentInfo={agentSelection.selectedAgentInfo} customAgents={agentSelection.customAgents} localeKey={localeKey} currentEffectiveAgentInfo={agentSelection.currentEffectiveAgentInfo} onSelectAssistant={handleSelectAssistant} onSetInput={guidInput.setInput} onFocusInput={guidInput.handleTextareaFocus} />}
+            {agentSelection.availableAgents === undefined ? <AssistantsSkeleton /> : <AssistantSelectionArea isPresetAgent={agentSelection.isPresetAgent} selectedAgentInfo={agentSelection.selectedAgentInfo} customAgents={agentSelection.customAgents} localeKey={localeKey} currentEffectiveAgentInfo={agentSelection.currentEffectiveAgentInfo} onSelectAssistant={handleSelectAssistant} onSetInput={guidInput.setInput} onFocusInput={guidInput.handleTextareaFocus} />}
+          </div>
+
+          <QuickActionButtons onOpenLink={openLink} inactiveBorderColor={inactiveBorderColor} activeShadow={activeShadow} />
         </div>
 
-        <QuickActionButtons onOpenLink={openLink} inactiveBorderColor={inactiveBorderColor} activeShadow={activeShadow} />
+        {showWorkspacePanel && (
+          <div className={styles.guidWorkspacePanel}>
+            <div className={styles.guidWorkspacePanelHeader}>
+              <span className='flex-1 truncate text-sm font-medium'>{t('conversation.workspace.title')}</span>
+              <button type='button' className='workspace-header__toggle' aria-label='Close workspace preview' onClick={() => guidInput.setDir('')}>
+                <ExpandRight size={16} />
+              </button>
+            </div>
+            <div className={styles.guidWorkspacePanelContent}>
+              {workspaceMessageContext}
+              <ChatWorkspace conversation_id={GUID_WORKSPACE_PREVIEW_ID} workspace={guidInput.dir} messageApi={workspaceMessageApi} />
+            </div>
+          </div>
+        )}
       </div>
     </ConfigProvider>
   );
