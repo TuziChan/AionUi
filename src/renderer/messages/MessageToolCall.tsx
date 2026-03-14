@@ -38,7 +38,7 @@ const MessageToolCall: React.FC<{ message: IMessageToolCall }> = ({ message }) =
     const shellSnippet = `\`\`\`shell\n${message.content.args.command}\n#${message.content.args.description}`;
     return <MarkdownView>{shellSnippet}</MarkdownView>;
   }
-  if (message.content.name === 'replace' || message.content.name === 'edit') {
+  if (message.content.name === 'replace') {
     return <ReplacePreview message={message} />;
   }
   return <div className='text-t-primary'>{message.content.name}</div>;
