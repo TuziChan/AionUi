@@ -2,7 +2,7 @@ import FlexFullContainer from '@/renderer/components/FlexFullContainer';
 import { isElectronDesktop, resolveExtensionAssetUrl } from '@/renderer/utils/platform';
 import { extensions as extensionsIpc, type IExtensionSettingsTab } from '@/common/ipcBridge';
 import { useExtI18n } from '@/renderer/hooks/useExtI18n';
-import { Communication, Computer, Earth, Gemini, Info, LinkCloud, Puzzle, Robot, System, Toolkit } from '@icon-park/react';
+import { Communication, Computer, Earth, Gemini, Info, Lightning, LinkCloud, Puzzle, Robot, System, Toolkit } from '@icon-park/react';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +11,7 @@ import { Tooltip } from '@arco-design/web-react';
 import { getSiderTooltipProps } from '@/renderer/utils/siderTooltip';
 
 /** Builtin settings tab IDs in display order (must match router paths). */
-const BUILTIN_TAB_IDS = ['gemini', 'model', 'agent', 'tools', 'display', 'webui', 'system', 'about'] as const;
+const BUILTIN_TAB_IDS = ['gemini', 'model', 'agent', 'skills-hub', 'tools', 'display', 'webui', 'system', 'about'] as const;
 
 type SiderItem = {
   id: string;
@@ -92,6 +92,7 @@ const SettingsSider: React.FC<{ collapsed?: boolean; tooltipEnabled?: boolean }>
       gemini: { id: 'gemini', label: t('settings.gemini'), icon: <Gemini />, path: 'gemini' },
       model: { id: 'model', label: t('settings.model'), icon: <LinkCloud />, path: 'model' },
       agent: { id: 'agent', label: t('settings.assistants', { defaultValue: 'Assistants' }), icon: <Robot />, path: 'agent' },
+      'skills-hub': { id: 'skills-hub', label: t('settings.skillsHub.title', { defaultValue: 'Skills Hub' }), icon: <Lightning />, path: 'skills-hub' },
       tools: { id: 'tools', label: t('settings.tools'), icon: <Toolkit />, path: 'tools' },
       display: { id: 'display', label: t('settings.display'), icon: <Computer />, path: 'display' },
       webui: { id: 'webui', label: t('settings.webui'), icon: isDesktop ? <Earth /> : <Communication />, path: 'webui' },
