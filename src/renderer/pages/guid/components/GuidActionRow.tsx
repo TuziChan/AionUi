@@ -11,11 +11,11 @@ import { useLayoutContext } from '@/renderer/context/LayoutContext';
 import { getCleanFileNames } from '@/renderer/services/FileService';
 import { iconColors } from '@/renderer/theme/colors';
 import { getLastDirectoryName } from '@/renderer/utils/workspace';
-import { cleanupWorkspaces, getRecentWorkspaces } from '@/renderer/utils/workspaceHistory';
+import { cleanupWorkspaces, getRecentWorkspaces, removeWorkspaceFromHistory } from '@/renderer/utils/workspaceHistory';
 import type { AcpBackend, AcpBackendConfig, AvailableAgent } from '../types';
 import PresetAgentTag from './PresetAgentTag';
-import { Button, Dropdown, Menu, Tooltip } from '@arco-design/web-react';
-import { ArrowUp, FolderOpen, Plus, Shield, Time, UploadOne } from '@icon-park/react';
+import { Button, Dropdown, Menu, Message, Tooltip } from '@arco-design/web-react';
+import { ArrowUp, DeleteFour, FolderOpen, Plus, Shield, Time, UploadOne } from '@icon-park/react';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import styles from '../index.module.css';
@@ -51,7 +51,9 @@ type GuidActionRowProps = {
   onSend: () => void;
 };
 
-const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, onSelectWorkspace, dir, modelSelectorNode, selectedAgent, effectiveModeAgent, selectedMode, onModeSelect, isPresetAgent, selectedAgentInfo, customAgents, localeKey, onClosePresetTag, loading, isButtonDisabled, onSend }) => {
+const GuidActionRow: React.FC<GuidActionRowProps> = (props) => {
+  // eslint-disable-next-line max-len
+  const { files, onFilesUploaded, onSelectWorkspace, dir, modelSelectorNode, selectedAgent, effectiveModeAgent, selectedMode, onModeSelect, isPresetAgent, selectedAgentInfo, customAgents, localeKey, onClosePresetTag, loading, isButtonDisabled, onSend } = props;
   const { t } = useTranslation();
   const layout = useLayoutContext();
   const isMobile = Boolean(layout?.isMobile);
@@ -63,7 +65,6 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, o
 
   const permissionLabel = currentModeOption ? (isMobile ? getModeDisplayLabel(currentModeOption) : `${t('agentMode.permission')} · ${getModeDisplayLabel(currentModeOption)}`) : t('agentMode.permission');
 
-  const [isPlusDropdownOpen, setIsPlusDropdownOpen] = useState(false);
   const [recentWorkspaces, setRecentWorkspaces] = useState<Array<{ path: string; time: number }>>([]);
 
   useEffect(() => {
@@ -72,12 +73,22 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, o
     });
   }, []);
 
+  const handleRemoveRecentWorkspace = async (path: string) => {
+    const success = await removeWorkspaceFromHistory(path);
+    if (!success) {
+      Message.error(t('common.deleteFailed'));
+      return;
+    }
+
+    setRecentWorkspaces((prev) => prev.filter((item) => item.path !== path));
+    Message.success(t('common.deleteSuccess'));
+  };
+
   return (
     <div className={styles.actionRow}>
       <div className={styles.actionTools}>
         <Dropdown
           trigger='hover'
-          onVisibleChange={setIsPlusDropdownOpen}
           droplist={
             <Menu
               className='min-w-200px'
@@ -134,9 +145,21 @@ const GuidActionRow: React.FC<GuidActionRowProps> = ({ files, onFilesUploaded, o
                   recentWorkspaces.map((item) => (
                     <Menu.Item key={`recent:${item.path}`}>
                       <Tooltip content={item.path} position='right' mini>
-                        <div className='flex items-center gap-8px max-w-250px'>
-                          <FolderOpen theme='outline' size='14' fill={iconColors.secondary} style={{ lineHeight: 0, flexShrink: 0 }} />
-                          <span className='truncate'>{getLastDirectoryName(item.path)}</span>
+                        <div className='flex items-center justify-between gap-8px max-w-250px w-full'>
+                          <div className='flex items-center gap-8px min-w-0 flex-1'>
+                            <FolderOpen theme='outline' size='14' fill={iconColors.secondary} style={{ lineHeight: 0, flexShrink: 0 }} />
+                            <span className='truncate'>{getLastDirectoryName(item.path)}</span>
+                          </div>
+                          <Button
+                            type='text'
+                            size='mini'
+                            icon={<DeleteFour theme='outline' size='14' fill={iconColors.secondary} />}
+                            onClick={(event) => {
+                              event.preventDefault();
+                              event.stopPropagation();
+                              void handleRemoveRecentWorkspace(item.path);
+                            }}
+                          />
                         </div>
                       </Tooltip>
                     </Menu.Item>

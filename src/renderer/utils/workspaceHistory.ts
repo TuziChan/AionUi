@@ -60,6 +60,19 @@ export const getRecentWorkspaces = async (limit: number = RECENT_WORKSPACES_LIMI
 };
 
 /**
+ * Remove a workspace from history.
+ */
+export const removeWorkspaceFromHistory = async (workspace: string): Promise<boolean> => {
+  try {
+    const nk = normalizePath(workspace);
+    return await workspaceHistoryBridge.remove.invoke({ path: nk });
+  } catch (error) {
+    console.error('[WorkspaceHistory] Failed to remove workspace:', error);
+    return false;
+  }
+};
+
+/**
  * Validate workspace paths and clean up stale entries.
  * - Removes entries where the directory no longer exists (ENOENT)
  * - Retains entries with non-ENOENT errors (e.g. permissions, network offline)
