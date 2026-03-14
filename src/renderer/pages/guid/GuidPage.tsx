@@ -264,6 +264,13 @@ const GuidPage: React.FC = () => {
     <ConfigProvider getPopupContainer={() => guidContainerRef.current || document.body}>
       <div className={styles.guidWrapper}>
         <div ref={guidContainerRef} className={styles.guidContainer}>
+          {hasWorkspace && (
+            <div className={styles.guidWorkspaceToggle}>
+              <button type='button' className='workspace-header__toggle' aria-label='Toggle workspace preview' onClick={() => setWorkspacePanelCollapsed((prev) => !prev)}>
+                {workspacePanelCollapsed ? <ExpandRight size={16} /> : <ExpandLeft size={16} />}
+              </button>
+            </div>
+          )}
           <div className={styles.guidLayout}>
             <p className='text-2xl font-semibold mb-6 text-0 text-center'>{t('conversation.welcome.title')}</p>
 
@@ -302,9 +309,6 @@ const GuidPage: React.FC = () => {
         {hasWorkspace && !workspacePanelCollapsed && (
           <div className={styles.guidWorkspacePanel}>
             <div className='workspace-panel-header flex items-center justify-start px-12px py-4px gap-12px border-b border-[var(--bg-3)]' style={{ height: 32, minHeight: 32 }}>
-              <button type='button' className='workspace-header__toggle mr-4px' aria-label='Collapse workspace preview' onClick={() => setWorkspacePanelCollapsed(true)}>
-                <ExpandLeft size={16} />
-              </button>
               <div className='flex-1 truncate text-sm font-medium'>{t('conversation.workspace.title')}</div>
             </div>
             <div className={styles.guidWorkspacePanelContent}>
@@ -312,11 +316,6 @@ const GuidPage: React.FC = () => {
               <ChatWorkspace conversation_id={GUID_WORKSPACE_PREVIEW_ID} workspace={guidInput.dir} messageApi={workspaceMessageApi} />
             </div>
           </div>
-        )}
-        {hasWorkspace && workspacePanelCollapsed && (
-          <button type='button' className='workspace-toggle-floating workspace-header__toggle absolute top-1/2 right-2 z-10' style={{ transform: 'translateY(-50%)' }} onClick={() => setWorkspacePanelCollapsed(false)} aria-label='Expand workspace preview'>
-            <ExpandLeft size={16} />
-          </button>
         )}
       </div>
     </ConfigProvider>
