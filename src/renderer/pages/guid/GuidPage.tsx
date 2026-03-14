@@ -301,11 +301,11 @@ const GuidPage: React.FC = () => {
 
         {hasWorkspace && !workspacePanelCollapsed && (
           <div className={styles.guidWorkspacePanel}>
-            <div className={styles.guidWorkspacePanelHeader}>
-              <span className='flex-1 truncate text-sm font-medium'>{t('conversation.workspace.title')}</span>
-              <button type='button' className='workspace-header__toggle' aria-label='Collapse workspace preview' onClick={() => setWorkspacePanelCollapsed(true)}>
-                <ExpandRight size={16} />
+            <div className='workspace-panel-header flex items-center justify-start px-12px py-4px gap-12px border-b border-[var(--bg-3)]' style={{ height: 32, minHeight: 32 }}>
+              <button type='button' className='workspace-header__toggle mr-4px' aria-label='Collapse workspace preview' onClick={() => setWorkspacePanelCollapsed(true)}>
+                <ExpandLeft size={16} />
               </button>
+              <div className='flex-1 truncate text-sm font-medium'>{t('conversation.workspace.title')}</div>
             </div>
             <div className={styles.guidWorkspacePanelContent}>
               {workspaceMessageContext}

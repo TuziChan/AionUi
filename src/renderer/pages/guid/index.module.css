@@ -170,17 +170,6 @@
   overflow: hidden;
 }
 
-.guidWorkspacePanelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 12px;
-  height: 32px;
-  min-height: 32px;
-  border-bottom: 1px solid var(--bg-3);
-  gap: 8px;
-}
-
 .guidWorkspacePanelContent {
   flex: 1;
   overflow: hidden;
